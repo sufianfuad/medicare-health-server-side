@@ -1,35 +1,132 @@
-const express = require('express')
 //express
-const app = express();
+const express = require('express');
 //cors
 const cors = require('cors');
-//dot env
-require('dotenv').config()
+//admin seq
+const admin = require("firebase-admin");
+
 //mongoDb
 const { MongoClient } = require("mongodb");
-//port
-const port = process.env.PORT || 7000
+//OBJ ID MISSING
+// const ObjectId = require('mongodb').ObjectId;
+
+//dot env
+require('dotenv').config();
+
+const app = express();
+const port = process.env.PORT || 7000;
+
+
+const serviceAccount = require('./medi-care-hospital-firebase-adminsdk.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
 
 //MiddleWare
 app.use(cors());
 app.use(express.json());
 
+//========
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.i3fcr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+//==
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
+async function verifyToken(req, res, next) {
+    if (req.headers?.authorization?.startsWith('Bearer ')) {
+        const token = req.headers.authorization.split(' ')[1];
+
+        try {
+            const decodedUser = await admin.auth().verifyIdToken(token);
+            req.decodedEmail = decodedUser.email;
+        }
+        catch {
+
+        }
+    }
+    next();
+}
 // console.log(uri);
 async function run() {
     try {
         await client.connect();
-        console.log('Database connected successfully');
-        const database = client.db('medicare_features')
+        // console.log('Database connected successfully');
+        const database = client.db('medicare_features');
+        //Treatment collection
         const treatmentCollection = database.collection('treatments');
+        //Appointment collection
+        const appointmentsCollection = database.collection('appointments');
+        //User collection
+        const usersCollection = database.collection('users');
+        //Doctor collection
+        const doctorsCollection = database.collection('doctors');
+        //Attendee collection
+        const attendeesCollection = database.collection('attendees');
+        //Order collection
+        const orderCollection = database.collection('orders');
+        //Review collection
+        const reviewCollection = database.collection('reviews');
 
-        //GET treatments
+        //GET treatments API
         app.get('/treatments', async (req, res) => {
-            const cursor = treatmentCollection.find({});
+            const cursor = await treatmentCollection.find({});
             const treatments = await cursor.toArray();
             res.send(treatments);
+        });
+        //GET Single treatment Load API
+        //coming...............
+
+        //USER GET API
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            //aitkane await missing chilo
+            const user = await usersCollection.findOne(query);
+            let isAdmin = false;
+            if (user?.role === 'admin') {
+                isAdmin = true;
+            }
+            res.json({ admin: isAdmin });
+        })
+        //USER POST API
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            //aitkane await missing chilo
+            const result = await usersCollection.insertOne(user);
+            console.log(result);
+            res.json(result)
+        });
+        //USER PUT
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            // console.log('PUT', user);
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        });
+        // PUT Make ADMIN USER
+        //user ui tekhe call korle bithore dukar aghe verify kore
+        app.put('/users/admin', verifyToken, async (req, res) => {
+            const user = req.body;
+            // console.log('PUT', req.decodedEmail);
+            const requester = req.decodedEmail;
+            if (requester) {
+                const requesterAccount = await usersCollection.findOne({ email: requester });
+                if (requesterAccount.role === 'admin') {
+                    const filter = { email: user?.email }
+                    const updateDoc = { $set: { role: 'admin' } }
+
+                    const result = await usersCollection.updateOne(filter, updateDoc);
+                    res.json(result);
+                }
+            }
+            else {
+                //user unauthorize
+                res.status(403).json({ message: 'You do not have access to make admin' })
+            }
         })
     }
     finally {
@@ -40,9 +137,9 @@ run().catch(console.dir);
 
 //==========================
 app.get('/', (req, res) => {
-    res.send('Hello Medico Portal!')
+    res.send('Hello Medicare Portal!')
 })
 
 app.listen(port, () => {
-    console.log(`Running at ${port}`)
+    console.log(`Medicare Running at ${port}`)
 })
