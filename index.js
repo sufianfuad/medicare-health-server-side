@@ -8,7 +8,7 @@ const admin = require("firebase-admin");
 //mongoDb
 const { MongoClient } = require("mongodb");
 //OBJ ID MISSING
-// const ObjectId = require('mongodb').ObjectId;
+const ObjectId = require('mongodb').ObjectId;
 
 //dot env
 require('dotenv').config();
@@ -63,6 +63,8 @@ async function run() {
         const doctorsCollection = database.collection('doctors');
         //Attendee collection
         const attendeesCollection = database.collection('attendees');
+        //==
+        const volunteerCollection = database.collection('volunteers');
         //Order collection
         const orderCollection = database.collection('orders');
         //Review collection
@@ -74,9 +76,25 @@ async function run() {
             const treatments = await cursor.toArray();
             res.send(treatments);
         });
+
+        //Treatments POST API
+        app.post('/treatments', async (req, res) => {
+            const treatment = req.body;
+            const result = await treatmentCollection.insertOne(treatment);
+            res.json(result);
+            console.log(result);
+        })
         //GET Single treatment Load API
         //coming...............
 
+        //DELETE products
+        app.delete('/treatments/:id', async (req, res) => {
+            // const id = req.params.id;
+            const query = { _id: ObjectId(req.params.id) };
+            const result = await treatmentCollection.deleteOne(query);
+            res.json(result);
+        });
+        //===================================================//
         //USER GET API
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
@@ -97,6 +115,7 @@ async function run() {
             console.log(result);
             res.json(result)
         });
+
         //USER PUT
         app.put('/users', async (req, res) => {
             const user = req.body;
@@ -107,8 +126,8 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             res.json(result);
         });
+
         // PUT Make ADMIN USER
-        //user ui tekhe call korle bithore dukar aghe verify kore
         app.put('/users/admin', verifyToken, async (req, res) => {
             const user = req.body;
             // console.log('PUT', req.decodedEmail);
@@ -128,6 +147,157 @@ async function run() {
                 res.status(403).json({ message: 'You do not have access to make admin' })
             }
         })
+        //===================================================//
+
+        // GET Doctor
+        app.get('/doctors', async (req, res) => {
+            const cursor = doctorsCollection.find({});
+            const doctor = await cursor.toArray();
+            res.send(doctor);
+        });
+
+        //Doctor GET
+        app.get('/doctors/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const doctor = await doctorsCollection.findOne(query);
+            let isDoctor = false;
+            if (doctor?.role === 'doctor') {
+                isDoctor = true;
+            }
+            res.json({ doctor: isDoctor });
+        })
+
+        // Doctor POST
+        app.post('/doctors', async (req, res) => {
+            const doctor = req.body;
+            const result = await doctorsCollection.insertOne(doctor)
+            res.json(result)
+            console.log(result);
+        })
+        // doctors put for doctor role
+        app.put('/doctors/doctor', async (req, res) => {
+            const doctor = req.body;
+            console.log('put', doctor);
+            const filter = { email: doctor.email }
+            const updateDoc = { $set: { role: 'doctor' } };
+            const result = await doctorsCollection.updateOne(filter, updateDoc)
+            res.json(result);
+        })
+        //
+        app.put('/doctors', async (req, res) => {
+            const doctor = req.body;
+            const filter = { email: doctor.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: doctor };
+            const result = await doctorsCollection.updateOne(filter, updateDoc, options);
+            console.log(result);
+            res.json(result);
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // get doctor
+        // app.get('/doctors', async (req, res) => {
+        //     const cursor = doctorsCollection.find({});
+        //     const doctor = await cursor.toArray();
+        //     res.send(doctor);
+        // });
+
+        //For Doctor
+        // app.get('/doctors/:email', async (req, res) => {
+        //     const email = req.params.email;
+        //     const query = { email: email };
+        //     const doctor = await usersCollection.findOne(query);
+        //     let isDoctor = false;
+        //     if (doctor?.role === 'doctor') {
+        //         isDoctor = true;
+        //     }
+        //     res.json({ doctor: isDoctor });
+        // });
+
+        //Doctor POST API
+        // app.post('/doctors', async (req, res) => {
+        //     const doctor = req.body;
+        //     const result = await usersCollection.insertOne(doctor);
+        //     console.log(result);
+        //     res.json(result)
+        // });
+        // app.put('/doctors', async (req, res) => {
+        //     const doctor = req.body;
+        //     const filter = { email: doctor.email };
+        //     const options = { upsert: true };
+        //     const updateDoc = { $set: doctor };
+        //     const result = await doctorsCollection.updateOne(filter, updateDoc, options);
+        //     console.log(result);
+        //     res.json(result);
+        // })
+        // set doctor role set
+        // app.put('/doctors/doctor', async (req, res) => {
+        //     const doctor = req.body;
+        //     console.log('put', doctor);
+        //     const filter = { email: doctor.email };
+        //     const updateDoc = { $set: { role: 'doctor' } }
+        //     const result = await doctorsCollection.updateOne(filter, updateDoc);
+        //     res.json(result);
+        // })
+        //===================================================//
+        // attendee role
+        // app.get('/attendees/:email', async (req, res) => {
+        //     const email = req.params.email;
+        //     const query = { email: email };
+        //     const attendee = await attendeesCollection.findOne(query);
+        //     let isAttendee = false;
+        //     if (attendee?.role === 'attendee') {
+        //         isAttendee = true;
+        //     }
+        //     res.json({ attendee: isAttendee });
+        // })
+
+        // app.post('/attendees', async (req, res) => {
+        //     const attendee = req.body;
+        //     const result = await attendeesCollection.insertOne(attendee);
+        //     console.log(result);
+        //     res.json(result);
+        // });
+
+        // app.put('/attendees', async (req, res) => {
+        //     const attendee = req.body;
+        //     const filter = { email: attendee.email };
+        //     const options = { upsert: true };
+        //     const updateDoc = { $set: attendee };
+        //     const result = await attendeesCollection.updateOne(filter, updateDoc, options);
+        //     console.log(result);
+        //     res.json(result);
+        // })
+        // get api for attendee
+        // app.get('/attendees', async (req, res) => {
+        //     const cursor = attendeesCollection.find({});
+        //     const attendee = await cursor.toArray();
+        //     res.send(attendee);
+        // });
+        // set role set
+        // app.put('/attendees/attendee', async (req, res) => {
+        //     const attendee = req.body;
+        //     console.log('put', attendee);
+        //     const filter = { email: attendee.email };
+        //     const updateDoc = { $set: { role: 'attendee' } };
+        //     const result = await attendeesCollection.updateOne(filter, updateDoc);
+        //     res.json(result);
+        // })
     }
     finally {
         // await client.close();
