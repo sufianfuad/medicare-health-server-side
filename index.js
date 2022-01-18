@@ -9,7 +9,7 @@ const admin = require("firebase-admin");
 const { MongoClient } = require("mongodb");
 //OBJ ID MISSING
 const ObjectId = require('mongodb').ObjectId;
-
+const fileUpload = require('express-fileupload')
 //dot env
 require('dotenv').config();
 
@@ -27,6 +27,7 @@ admin.initializeApp({
 //MiddleWare
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload());
 
 //========
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.i3fcr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -61,6 +62,7 @@ async function run() {
         const usersCollection = database.collection('users');
         //Doctor collection
         const doctorsCollection = database.collection('doctors');
+        const addDoctorCollection = database.collection('add_doctor');
         //Attendee collection
         const attendeesCollection = database.collection('attendees');
         //==
@@ -69,12 +71,18 @@ async function run() {
         const orderCollection = database.collection('orders');
         //Review collection
         const reviewCollection = database.collection('reviews');
+        const userInfoCollection = database.collection('user_info');
 
         //GET treatments API
         app.get('/treatments', async (req, res) => {
-            const cursor = await treatmentCollection.find({});
+            console.log(req.query);
+            const cursor = treatmentCollection.find({});
             const treatments = await cursor.toArray();
-            res.send(treatments);
+            const count = await cursor.count();
+            res.send({
+                count,
+                treatments
+            });
         });
 
         //Treatments POST API
@@ -127,7 +135,7 @@ async function run() {
             res.json(result);
         });
 
-        // PUT Make ADMIN USER
+        // PUT Make ADMIN USER 
         app.put('/users/admin', verifyToken, async (req, res) => {
             const user = req.body;
             // console.log('PUT', req.decodedEmail);
@@ -184,7 +192,7 @@ async function run() {
             const result = await doctorsCollection.updateOne(filter, updateDoc)
             res.json(result);
         })
-        //
+
         app.put('/doctors', async (req, res) => {
             const doctor = req.body;
             const filter = { email: doctor.email };
@@ -194,6 +202,47 @@ async function run() {
             console.log(result);
             res.json(result);
         })
+        //=========================
+        //user Info Collection
+        app.get('/user_info', async (req, res) => {
+            const cursor = userInfoCollection.find({});
+            const userInfo = await cursor.toArray();
+            res.send(userInfo)
+        })
+        app.post('/user_info', async (req, res) => {
+            const userInfo = req.body;
+            console.log(userInfo);
+            const result = await userInfoCollection.insertOne(userInfo);
+            res.send(result)
+            console.log(result);
+        });
+        //===================================
+        app.get('/add_doctor', async (req, res) => {
+            const cursor = addDoctorCollection.find({});
+            const addDoctors = await cursor.toArray();
+            res.json(addDoctors)
+        });
+
+        app.post('/add_doctor', async (req, res) => {
+            // console.log('body', req.body);
+            // console.log('files', req.files);
+            res.json({ success: true })
+            const doctorName = req.body.doctorName;
+            const doctorEmail = req.body.doctorEmail;
+            const pic = req.files.doctorPic;
+            const picData = pic.data;
+            const encodedPic = picData.toString('base64')
+            const imageBuffer = Buffer.from(encodedPic, 'base64');
+            const doctor = {
+                doctorName,
+                doctorEmail,
+                doctorPic: imageBuffer
+            }
+            const result = await addDoctorCollection.insertOne(doctor)
+            res.json(result)
+            console.log(result);
+        });
+
 
 
 
