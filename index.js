@@ -79,9 +79,9 @@ async function run() {
             console.log(req.query);
             const cursor = treatmentCollection.find({});
             const treatments = await cursor.toArray();
-            const count = await cursor.count();
+            // const count = await cursor.count();
             res.send({
-                count,
+                // count,
                 treatments
             });
         });
@@ -320,7 +320,7 @@ async function run() {
         //     const updateDoc = { $set: { role: 'doctor' } }
         //     const result = await doctorsCollection.updateOne(filter, updateDoc);
         //     res.json(result);
-        // })
+        // });
         //===================================================//
         // attendee role
         // app.get('/attendees/:email', async (req, res) => {
