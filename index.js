@@ -364,7 +364,7 @@ async function run() {
         //     const updateDoc = { $set: { role: 'attendee' } };
         //     const result = await attendeesCollection.updateOne(filter, updateDoc);
         //     res.json(result);
-        // })
+        // });
     }
     finally {
         // await client.close();
