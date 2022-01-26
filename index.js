@@ -9,6 +9,7 @@ const admin = require("firebase-admin");
 const { MongoClient } = require("mongodb");
 //OBJ ID MISSING
 const ObjectId = require('mongodb').ObjectId;
+//
 const fileUpload = require('express-fileupload')
 //dot env
 require('dotenv').config();
@@ -216,6 +217,23 @@ async function run() {
             res.send(result)
             console.log(result);
         });
+        // users single data GET 
+        app.get('/user_info/:email', async (req, res) => {
+            const query = { email: req.params.email };
+            const result = await userInfoCollection.find(query).toArray();
+            res.json(result);
+        });
+
+        //DELETE User Info API
+        app.delete('/user_info/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await userInfoCollection.deleteOne(query);
+            res.json(result);
+            console.log(result);
+        });
+
+
         //===================================
         app.get('/add_doctor', async (req, res) => {
             const cursor = addDoctorCollection.find({});
