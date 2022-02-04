@@ -115,7 +115,8 @@ async function run() {
                 isAdmin = true;
             }
             res.json({ admin: isAdmin });
-        })
+        });
+
         //USER POST API
         app.post('/users', async (req, res) => {
             const user = req.body;
