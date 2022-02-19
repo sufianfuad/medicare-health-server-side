@@ -80,10 +80,7 @@ async function run() {
             const cursor = treatmentCollection.find({});
             const treatments = await cursor.toArray();
             // const count = await cursor.count();
-            res.send({
-                // count,
-                treatments
-            });
+            res.send(treatments);
         });
 
         //Treatments POST API
@@ -96,7 +93,7 @@ async function run() {
         //GET Single treatment Load API
         //coming...............
 
-        //DELETE products
+        //DELETE treatment
         app.delete('/treatments/:id', async (req, res) => {
             // const id = req.params.id;
             const query = { _id: ObjectId(req.params.id) };
@@ -203,8 +200,15 @@ async function run() {
             const result = await doctorsCollection.updateOne(filter, updateDoc, options);
             console.log(result);
             res.json(result);
-        })
-        //=========================
+        });
+
+
+
+
+
+
+
+        //===================================
         //user Info Collection
         app.get('/user_info', async (req, res) => {
             const cursor = userInfoCollection.find({});
@@ -235,11 +239,30 @@ async function run() {
         });
 
 
+
+
+
+
         //===================================
         app.get('/add_doctor', async (req, res) => {
             const cursor = addDoctorCollection.find({});
             const addDoctors = await cursor.toArray();
             res.json(addDoctors)
+        });
+
+        //All addDoctor collect
+        app.get('/allDoctors', async (req, res) => {
+            const result = await addDoctorCollection.find({}).toArray();
+            res.send(result);
+        });
+        // DELETE addDoctor API
+
+        app.delete('/add_doctor/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await addDoctorCollection.deleteOne(query);
+            console.log('delete doctor', result);
+            res.json(result);
         });
 
         app.post('/add_doctor', async (req, res) => {
@@ -261,6 +284,20 @@ async function run() {
             res.json(result)
             console.log(result);
         });
+
+
+
+
+
+
+
+
+
+        //===========>> GET API Appointment <<=============
+        app.post('/appointments', async (req, res) => {
+
+        })
+
 
 
 
