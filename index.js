@@ -218,7 +218,6 @@ async function run() {
 
 
 
-
         //===================================
         //All Profiles Collection
         app.get('/allProfiles', async (req, res) => {
@@ -397,108 +396,6 @@ async function run() {
             res.json({ clientSecret: paymentIntent.client_secret })
         })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // get doctor
-        // app.get('/doctors', async (req, res) => {
-        //     const cursor = doctorsCollection.find({});
-        //     const doctor = await cursor.toArray();
-        //     res.send(doctor);
-        // });
-
-        //For Doctor
-        // app.get('/doctors/:email', async (req, res) => {
-        //     const email = req.params.email;
-        //     const query = { email: email };
-        //     const doctor = await usersCollection.findOne(query);
-        //     let isDoctor = false;
-        //     if (doctor?.role === 'doctor') {
-        //         isDoctor = true;
-        //     }
-        //     res.json({ doctor: isDoctor });
-        // });
-
-        //Doctor POST API
-        // app.post('/doctors', async (req, res) => {
-        //     const doctor = req.body;
-        //     const result = await usersCollection.insertOne(doctor);
-        //     console.log(result);
-        //     res.json(result)
-        // });
-        // app.put('/doctors', async (req, res) => {
-        //     const doctor = req.body;
-        //     const filter = { email: doctor.email };
-        //     const options = { upsert: true };
-        //     const updateDoc = { $set: doctor };
-        //     const result = await doctorsCollection.updateOne(filter, updateDoc, options);
-        //     console.log(result);
-        //     res.json(result);
-        // })
-        // set doctor role set
-        // app.put('/doctors/doctor', async (req, res) => {
-        //     const doctor = req.body;
-        //     console.log('put', doctor);
-        //     const filter = { email: doctor.email };
-        //     const updateDoc = { $set: { role: 'doctor' } }
-        //     const result = await doctorsCollection.updateOne(filter, updateDoc);
-        //     res.json(result);
-        // });
-        //===================================================//
-        // attendee role
-        // app.get('/attendees/:email', async (req, res) => {
-        //     const email = req.params.email;
-        //     const query = { email: email };
-        //     const attendee = await attendeesCollection.findOne(query);
-        //     let isAttendee = false;
-        //     if (attendee?.role === 'attendee') {
-        //         isAttendee = true;
-        //     }
-        //     res.json({ attendee: isAttendee });
-        // })
-
-        // app.post('/attendees', async (req, res) => {
-        //     const attendee = req.body;
-        //     const result = await attendeesCollection.insertOne(attendee);
-        //     console.log(result);
-        //     res.json(result);
-        // });
-
-        // app.put('/attendees', async (req, res) => {
-        //     const attendee = req.body;
-        //     const filter = { email: attendee.email };
-        //     const options = { upsert: true };
-        //     const updateDoc = { $set: attendee };
-        //     const result = await attendeesCollection.updateOne(filter, updateDoc, options);
-        //     console.log(result);
-        //     res.json(result);
-        // })
-        // get api for attendee
-        // app.get('/attendees', async (req, res) => {
-        //     const cursor = attendeesCollection.find({});
-        //     const attendee = await cursor.toArray();
-        //     res.send(attendee);
-        // });
-        // set role set
-        // app.put('/attendees/attendee', async (req, res) => {
-        //     const attendee = req.body;
-        //     console.log('put', attendee);
-        //     const filter = { email: attendee.email };
-        //     const updateDoc = { $set: { role: 'attendee' } };
-        //     const result = await attendeesCollection.updateOne(filter, updateDoc);
-        //     res.json(result);
-        // });
     }
     finally {
         // await client.close();
