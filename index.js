@@ -9,7 +9,11 @@ const admin = require("firebase-admin");
 const { MongoClient } = require("mongodb");
 //OBJ ID MISSING
 const ObjectId = require('mongodb').ObjectId;
-//
+
+// const stripe = require('stripe')('sk_test_51JwAlyCTzT8XZQMxQP53mDjeRoYmeJgHVV9ffc5dcoZWkOEziz4hWtHsIhumVmQpb7m1UjmB1KKiZn2Hqv6Xkopq00YxAL49Ca')
+const Stripe = require('stripe');
+const stripe = Stripe('sk_test_51JwAlyCTzT8XZQMxQP53mDjeRoYmeJgHVV9ffc5dcoZWkOEziz4hWtHsIhumVmQpb7m1UjmB1KKiZn2Hqv6Xkopq00YxAL49Ca');
+//Image file upload
 const fileUpload = require('express-fileupload')
 //dot env
 require('dotenv').config();
@@ -65,18 +69,21 @@ async function run() {
         const doctorsCollection = database.collection('doctors');
         const addDoctorCollection = database.collection('add_doctor');
         //Attendee collection
-        const attendeesCollection = database.collection('attendees');
+        // const attendeesCollection = database.collection('attendees');
         //==
-        const volunteerCollection = database.collection('volunteers');
+        // const volunteerCollection = database.collection('volunteers');
         //Order collection
-        const orderCollection = database.collection('orders');
+        // const orderCollection = database.collection('orders');
         //Review collection
         const reviewCollection = database.collection('reviews');
+        //User Info Collection
         const userInfoCollection = database.collection('user_info');
+        //Test Center Collection
+        const testCenterCollection = database.collection('test_center');
 
         //GET treatments API
         app.get('/treatments', async (req, res) => {
-            console.log(req.query);
+            // console.log(req.query);
             const cursor = treatmentCollection.find({});
             const treatments = await cursor.toArray();
             // const count = await cursor.count();
@@ -85,7 +92,8 @@ async function run() {
 
         //Treatments POST API
         app.post('/treatments', async (req, res) => {
-            const treatment = req.body;
+            const treatment = await req.body;
+            console.log('hit the post', treatment);
             const result = await treatmentCollection.insertOne(treatment);
             res.json(result);
             console.log(result);
@@ -100,6 +108,9 @@ async function run() {
             const result = await treatmentCollection.deleteOne(query);
             res.json(result);
         });
+
+
+
         //===================================================//
         //USER GET API
         app.get('/users/:email', async (req, res) => {
@@ -209,7 +220,12 @@ async function run() {
 
 
         //===================================
-        //user Info Collection
+        //All Profiles Collection
+        app.get('/allProfiles', async (req, res) => {
+            const result = await userInfoCollection.find({}).toArray();
+            res.send(result);
+        });
+        //user Profile Info Collection
         app.get('/user_info', async (req, res) => {
             const cursor = userInfoCollection.find({});
             const userInfo = await cursor.toArray();
@@ -241,9 +257,7 @@ async function run() {
 
 
 
-
-
-        //===================================
+        //=============ADD Doctor API======================
         app.get('/add_doctor', async (req, res) => {
             const cursor = addDoctorCollection.find({});
             const addDoctors = await cursor.toArray();
@@ -255,6 +269,7 @@ async function run() {
             const result = await addDoctorCollection.find({}).toArray();
             res.send(result);
         });
+
         // DELETE addDoctor API
 
         app.delete('/add_doctor/:id', async (req, res) => {
@@ -285,21 +300,102 @@ async function run() {
             console.log(result);
         });
 
+        //===========>> GET API Test Center <<=============
+        //GET API
+        app.get('/test_center', async (req, res) => {
+            const cursor = testCenterCollection.find({});
+            const result = await cursor.toArray();
+            res.send(result);
+        });
 
+        app.post('/test_center', async (req, res) => {
+            const testCenter = req.body;
+            console.log('hit the post api', testCenter);
+            const result = await testCenterCollection.insertOne(testCenter);
+            res.json(result);
+            console.log(result)
+        });
 
-
+        //===========>> Reviews API <<=============
+        //GET API
+        app.get('/reviews', async (req, res) => {
+            const cursor = reviewCollection.find({});
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        })
+        //POST API to send data in MongoDB
+        app.post('/reviews', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            console.log('hitted', review);
+            res.json(result);
+        })
 
 
 
 
 
         //===========>> GET API Appointment <<=============
-        app.post('/appointments', async (req, res) => {
-
+        //GET All Appointment API
+        app.get('/allAppointments', async (req, res) => {
+            const result = await appointmentsCollection.find({}).toArray();
+            // const allAppointments = await cursor.toArray();
+            // console.log(allAppointments);
+            res.json(result)
         })
+        app.get('/appointments', async (req, res) => {
+            const email = req.query.email;
+            const todayDates = new Date(req.query.todayDates).toDateString();
+            // console.log(todayDates)
+            const query = { email: email, todayDates: todayDates };
+            // console.log(query)
+            const cursor = appointmentsCollection.find(query);
+            const appointments = await cursor.toArray();
+            res.json(appointments);
+        })
+        //======Appointment GET =============
+        app.get('/appointments/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await appointmentsCollection.findOne(query);
+            res.json(result);
+        })
+        //======Appointment POST =============
+        app.post('/appointments', async (req, res) => {
+            const appointment = req.body;
+            const result = await appointmentsCollection.insertOne(appointment);
+            // console.log(appointment)
+            // console.log(result)
+            // res.json({ message: "hello" })
+            res.json(result)
+        });
+
+        app.put('/appointments/:id', async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    payment: payment
+                }
+            };
+            const result = await appointmentsCollection.updateOne(filter, updateDoc);
+            res.json(result);
+        });
 
 
-
+        //Payment API
+        app.post('/create-payment-intent', async (req, res) => {
+            const paymentInfo = req.body;
+            const amount = paymentInfo.price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: 'usd',
+                amount: amount,
+                payment_method_types: ['card']
+                // automatic_payment_methods: ['card']
+            });
+            res.json({ clientSecret: paymentIntent.client_secret })
+        })
 
 
 
