@@ -67,13 +67,9 @@ async function run() {
         const usersCollection = database.collection('users');
         //Doctor collection
         const doctorsCollection = database.collection('doctors');
+
         const addDoctorCollection = database.collection('add_doctor');
-        //Attendee collection
-        // const attendeesCollection = database.collection('attendees');
-        //==
-        // const volunteerCollection = database.collection('volunteers');
-        //Order collection
-        // const orderCollection = database.collection('orders');
+
         //Review collection
         const reviewCollection = database.collection('reviews');
         //User Info Collection
@@ -81,13 +77,21 @@ async function run() {
         //Test Center Collection
         const testCenterCollection = database.collection('test_center');
 
+        //===========>> GET API TestTreatments<<=============
         //GET treatments API
         app.get('/treatments', async (req, res) => {
             // console.log(req.query);
             const cursor = treatmentCollection.find({});
             const treatments = await cursor.toArray();
-            // const count = await cursor.count();
             res.send(treatments);
+        });
+        //GET Single treatment Load API
+        app.get('/treatments/:id', async (req, res) => {
+            const id = req.params?.id;
+            console.log('specific treatment id', id);
+            const query = { _id: ObjectId(id) };
+            const treatment = await treatmentCollection.findOne(query);
+            res.json(treatment);
         });
 
         //Treatments POST API
@@ -98,8 +102,7 @@ async function run() {
             res.json(result);
             console.log(result);
         })
-        //GET Single treatment Load API
-        //coming...............
+
 
         //DELETE treatment
         app.delete('/treatments/:id', async (req, res) => {
@@ -270,7 +273,6 @@ async function run() {
         });
 
         // DELETE addDoctor API
-
         app.delete('/add_doctor/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -306,7 +308,7 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         });
-
+        //POST API
         app.post('/test_center', async (req, res) => {
             const testCenter = req.body;
             console.log('hit the post api', testCenter);
@@ -315,7 +317,7 @@ async function run() {
             console.log(result)
         });
 
-        //===========>> Reviews API <<=============
+        //=============>> Reviews API <<===============
         //GET API
         app.get('/reviews', async (req, res) => {
             const cursor = reviewCollection.find({});
@@ -328,20 +330,21 @@ async function run() {
             const result = await reviewCollection.insertOne(review);
             console.log('hitted', review);
             res.json(result);
-        })
-
-
+        });
 
 
 
         //===========>> GET API Appointment <<=============
+
+
         //GET All Appointment API
         app.get('/allAppointments', async (req, res) => {
             const result = await appointmentsCollection.find({}).toArray();
             // const allAppointments = await cursor.toArray();
             // console.log(allAppointments);
             res.json(result)
-        })
+        });
+        // email and realtime date pawar jonno 
         app.get('/appointments', async (req, res) => {
             const email = req.query.email;
             const todayDates = new Date(req.query.todayDates).toDateString();
@@ -368,7 +371,7 @@ async function run() {
             // res.json({ message: "hello" })
             res.json(result)
         });
-
+        // update API korchi payment data load er jonno 
         app.put('/appointments/:id', async (req, res) => {
             const id = req.params.id;
             const payment = req.body;
@@ -382,8 +385,17 @@ async function run() {
             res.json(result);
         });
 
+        //DELETE User Info API
+        app.delete('/appointments/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await appointmentsCollection.deleteOne(query);
+            res.json(result);
+            // console.log('delete appointment', result);
+            // console.log(result);
+        });
 
-        //Payment API
+        //Payment API from STRIPE
         app.post('/create-payment-intent', async (req, res) => {
             const paymentInfo = req.body;
             const amount = paymentInfo.price * 100;
